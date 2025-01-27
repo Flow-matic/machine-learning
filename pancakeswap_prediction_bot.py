@@ -1,6 +1,6 @@
 import time
 import requests
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from web3 import Web3
 
 # Configure logging (Optional)
@@ -9,6 +9,10 @@ logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s 
 
 # Initialize Web3 (for optional interaction with PancakeSwap contract)
 bsc = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org/"))
+
+# Store historical data globally
+price_history = []
+volume_history = []
 
 # Function to get live BNB/USD data (price, volume, bid/ask) from Binance API
 def get_market_data():
@@ -60,7 +64,7 @@ def predict_direction(price_history, volume_history, bid, ask):
 
     # Ensure enough data for predictions
     if short_ma is None or long_ma is None or rsi is None:
-        return "UP"  # Default prediction
+        return None  # Not enough data to predict
 
     # Bid/Ask analysis
     bid_ask_diff = bid - ask  # Positive = bullish, Negative = bearish
@@ -91,10 +95,9 @@ def get_next_round_start():
 
 # Function to execute the bot and get predictions
 def execute_bot():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Running the prediction bot...")
+    global price_history, volume_history
 
-    price_history = []  # Store historical prices
-    volume_history = []  # Store historical volumes
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Running the prediction bot...")
 
     # Fetch current market data (price, volume, bid, ask)
     price, volume, bid, ask = get_market_data()
@@ -106,9 +109,11 @@ def execute_bot():
         # Predict UP or DOWN based on indicators
         if len(price_history) >= 2:
             prediction = predict_direction(price_history, volume_history, bid, ask)
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Prediction: {prediction}")
-            save_data_to_csv(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), price, volume, bid, ask, prediction)
-
+            if prediction:
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Prediction: {prediction}")
+                save_data_to_csv(datetime.now().strftime('%Y-%m-%d %H:%M:%S'), price, volume, bid, ask, prediction)
+            else:
+                print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Not enough data for prediction.")
     else:
         print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Error: Could not retrieve market data.")
 
@@ -135,6 +140,8 @@ def start_bot():
 # Run the bot
 if __name__ == "__main__":
     start_bot()
+
+
 
 
 

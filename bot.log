@@ -67,3 +67,21 @@
 2025-01-27 14:55:00,805 - An error occurred: Invalid time format for a minutely job (valid format is :SS)
 2025-01-27 14:58:00,446 - Price: 667.13, Prediction: UP
 2025-01-27 14:58:03,710 - Price: 667.255, Volume: 478794.038, Bid: 667.25, Ask: 667.26, Prediction: UP
+2025-01-27 15:03:00,690 - Price: 666.86, Prediction: UP
+2025-01-27 15:03:04,197 - Price: 666.445, Volume: 480463.562, Bid: 666.44, Ask: 666.45, Prediction: UP
+2025-01-27 15:08:00,933 - Price: 667.72, Prediction: UP
+2025-01-27 15:08:04,691 - Price: 667.795, Volume: 481893.729, Bid: 667.79, Ask: 667.8, Prediction: UP
+2025-01-27 15:13:01,177 - Price: 667.0, Prediction: UP
+2025-01-27 15:13:05,179 - Price: 666.925, Volume: 482852.753, Bid: 666.92, Ask: 666.93, Prediction: UP
+2025-01-27 15:18:01,425 - Price: 664.9, Prediction: UP
+2025-01-27 15:18:05,672 - Price: 664.785, Volume: 484269.23, Bid: 664.78, Ask: 664.79, Prediction: UP
+2025-01-27 15:23:01,668 - Price: 665.35, Prediction: UP
+2025-01-27 15:23:06,158 - Price: 665.245, Volume: 484483.998, Bid: 665.24, Ask: 665.25, Prediction: UP
+2025-01-27 15:28:01,913 - Price: 666.48, Prediction: UP
+2025-01-27 15:28:06,649 - Price: 666.595, Volume: 485033.49, Bid: 666.59, Ask: 666.6, Prediction: UP
+2025-01-27 15:33:02,155 - Price: 666.61, Prediction: DOWN
+2025-01-27 15:33:07,137 - Price: 666.505, Volume: 486112.59, Bid: 666.5, Ask: 666.51, Prediction: DOWN
+2025-01-27 15:38:02,400 - Price: 667.23, Prediction: DOWN
+2025-01-27 15:38:07,283 - Bot stopped by user.
+2025-01-27 15:38:07,623 - Price: 667.115, Volume: 487449.624, Bid: 667.11, Ask: 667.12, Prediction: DOWN
+2025-01-27 15:38:16,842 - Bot stopped by user.
