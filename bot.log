@@ -62,3 +62,8 @@
 2025-01-27 14:43:02,237 - Price: 662.875, Volume: 471467.538, Bid: 662.87, Ask: 662.88, Prediction: UP
 2025-01-27 14:47:59,950 - Price: 665.45, Prediction: UP
 2025-01-27 14:48:02,730 - Price: 665.455, Volume: 474268.773, Bid: 665.45, Ask: 665.46, Prediction: UP
+2025-01-27 14:53:00,197 - Price: 666.06, Prediction: UP
+2025-01-27 14:53:03,218 - Price: 666.275, Volume: 476504.805, Bid: 666.27, Ask: 666.28, Prediction: UP
+2025-01-27 14:55:00,805 - An error occurred: Invalid time format for a minutely job (valid format is :SS)
+2025-01-27 14:58:00,446 - Price: 667.13, Prediction: UP
+2025-01-27 14:58:03,710 - Price: 667.255, Volume: 478794.038, Bid: 667.25, Ask: 667.26, Prediction: UP
