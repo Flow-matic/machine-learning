@@ -50,3 +50,9 @@
 2025-01-27 11:59:07,867 - Price: 651.705, Volume: 438309.713, Bid: 651.7, Ask: 651.71, Prediction: UP
 2025-01-27 12:01:35,230 - Bot stopped by user.
 2025-01-27 12:01:42,975 - Bot stopped by user.
+2025-01-27 14:23:28,274 - Bot started.
+2025-01-27 14:23:30,267 - Bot started.
+2025-01-27 14:25:00,278 - An error occurred: Invalid time format for a minutely job (valid format is :SS)
+2025-01-27 14:30:00,278 - An error occurred: Invalid time format for a minutely job (valid format is :SS)
+2025-01-27 14:32:59,191 - Price: 662.85, Prediction: UP
+2025-01-27 14:33:01,260 - Price: 662.575, Volume: 466749.079, Bid: 662.57, Ask: 662.58, Prediction: UP
