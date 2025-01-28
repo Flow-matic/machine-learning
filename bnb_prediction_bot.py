@@ -16,6 +16,7 @@ URL = "https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT"
 price_history = []
 features = []
 labels = []
+model = None
 
 def get_market_data():
     try:
@@ -102,7 +103,12 @@ def predict_direction(model, price_history):
     try:
         features = calculate_technical_indicators(price_history)
         prediction = model.predict([features])[0]
-        return prediction
+        if prediction == 1:
+            return "UP"
+        elif prediction == 0:
+            return "DOWN"
+        else:
+            return None
     except Exception as e:
         logging.error(f"Error making prediction: {e}")
         return None
@@ -113,7 +119,7 @@ def get_next_round_start():
     return seconds_to_next_round
 
 def execute_bot():
-    global price_history, features, labels
+    global price_history, features, labels, model
 
     price, volume, open_price, high, low = get_market_data()
     if price is not None and volume is not None:
@@ -123,7 +129,7 @@ def execute_bot():
             try:
                 # Calculate features and label
                 features_row = calculate_technical_indicators(price_history)
-                # Determine label based on price change (simplified)
+                # Determine label based on price change
                 label = 1 if price_history[-1] > price_history[-2] else 0  # 1 for UP, 0 for DOWN
 
                 # Update features and labels for training
@@ -137,10 +143,8 @@ def execute_bot():
                 # Make prediction using the trained model
                 prediction = predict_direction(model, price_history)
 
-                if prediction == 1:
-                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Prediction: UP")
-                elif prediction == 0:
-                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Prediction: DOWN")
+                if prediction:
+                    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Prediction: {prediction}")
                 else:
                     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Not enough data for prediction.")
 
@@ -165,13 +169,4 @@ def start_bot():
             break
         except Exception as e:
             print(f"An error occurred: {e}")
-            logging.error(f"An error occurred: {e}")  # Corrected indentation
-
-if __name__ == "__main__":
-    start_bot()
-
-
-
-
-
-
+            logging.error(f"An error occurred: {e}")
