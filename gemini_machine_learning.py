@@ -3,7 +3,8 @@ import requests
 from datetime import datetime, timezone
 import logging
 import pandas as pd
-from xgboost import XGBRegressor  # Import XGBoost library
+from xgboost import XGBRegressor
+import numpy as np
 
 logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s - %(message)s")
 
@@ -15,6 +16,16 @@ price_history = []
 features = []
 labels = []
 model = None
+
+# Recommended: Define hyperparameters for XGBoost
+xgb_params = {
+    'n_estimators': 100,  # Number of boosting rounds
+    'learning_rate': 0.1, 
+    'max_depth': 3, 
+    'subsample': 0.8, 
+    'colsample_bytree': 0.8, 
+    'random_state': 42
+}
 
 def get_market_data():
     try:
@@ -62,18 +73,25 @@ def calculate_macd(prices, short_period=12, long_period=26, signal_period=9):
     signal_line = moving_average(prices[-signal_period:], signal_period) if macd_line else None
     return macd_line, signal_line
 
+def calculate_volatility(prices, window=20):
+    """Calculates volatility using standard deviation."""
+    if len(prices) < window:
+        return None
+    return np.std(prices[-window:])
+
 def calculate_technical_indicators(prices):
     """Calculates technical indicators for the given price history."""
     short_ma = moving_average(prices, 3)
     long_ma = moving_average(prices, 5)
     rsi = calculate_rsi(prices, 14)
     macd_line, signal_line = calculate_macd(prices)
+    volatility = calculate_volatility(prices) 
 
-    return short_ma, long_ma, rsi, macd_line, signal_line
+    return short_ma, long_ma, rsi, macd_line, signal_line, volatility
 
 def train_model(features, labels):
     """Trains an XGBoost model to predict price direction."""
-    model = XGBRegressor()  # Initialize XGBoost model
+    model = XGBRegressor(**xgb_params)  # Use defined hyperparameters
     model.fit(features, labels)
     return model
 
@@ -86,7 +104,6 @@ def predict_direction(model, price_history):
         features = calculate_technical_indicators(price_history)
         if None not in features:
             prediction = model.predict([features])[0]
-            # Assuming prediction > 0.5 indicates an "UP" trend
             return "UP" if prediction > 0.5 else "DOWN" 
         else:
             return None
@@ -111,7 +128,7 @@ def execute_bot():
                     labels.append(label)
 
                 # Train the model if enough data is available
-                if len(features) >= 10:  # Lowered threshold for testing
+                if len(features) >= 50:  # Increase training data threshold
                     model = train_model(features, labels)
 
                 # Make prediction using the trained model
