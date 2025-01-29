@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 import optuna
 import joblib
+import os
 
 # Binance API endpoint
 URL = "https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT"
@@ -24,6 +25,33 @@ scaler = None  # Initialize scaler to None
 
 # Logging configuration
 logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
+def load_model():
+    global model, scaler
+    if os.path.exists("bnb_model.pkl"):
+        model, scaler = joblib.load("bnb_model.pkl")
+        print("Model loaded from file.")
+    else:
+        print("No saved model found. Training required.")
+
+def save_data():
+    np.save("price_history.npy", price_history)
+    np.save("volume_history.npy", volume_history)
+    np.save("features.npy", features)
+    np.save("labels.npy", labels)
+    print("Historical data saved.")
+
+def load_data():
+    global price_history, volume_history, features, labels
+    if os.path.exists("price_history.npy"):
+        price_history = np.load("price_history.npy").tolist()
+    if os.path.exists("volume_history.npy"):
+        volume_history = np.load("volume_history.npy").tolist()
+    if os.path.exists("features.npy"):
+        features = np.load("features.npy").tolist()
+    if os.path.exists("labels.npy"):
+        labels = np.load("labels.npy").tolist()
+    print("Historical data loaded.")
 
 def get_market_data():
     try:
@@ -80,14 +108,15 @@ def execute_bot():
 
         print(f"Price history length: {len(price_history)}, Volume history length: {len(volume_history)}")
 
-        if len(price_history) >= 21:  # Ensure enough data for indicators
+        if len(price_history) >= 21:
             features_row = calculate_technical_indicators()
             if features_row:
                 label = 1 if price_history[-1] > price_history[-2] else 0
                 features.append(list(features_row.values()))
                 labels.append(label)
+                save_data()
 
-                if model is None and len(features) >= 50:  # Train after 50 samples
+                if model is None and len(features) >= 50:
                     train_model()
 
                 if model and scaler:
@@ -129,32 +158,19 @@ def train_model():
     X_train_scaled = scaler.transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
-    def objective(trial):
-        params = {
-            "num_leaves": trial.suggest_int("num_leaves", 20, 150),
-            "learning_rate": trial.suggest_loguniform("learning_rate", 0.005, 0.2),
-            "n_estimators": trial.suggest_int("n_estimators", 50, 500),
-        }
-        model = LGBMRegressor(**params)
-        model.fit(X_train_scaled, y_train)
-        pred = model.predict(X_test_scaled)
-        return mean_squared_error(y_test, pred)
-
-    study = optuna.create_study(direction="minimize")
-    study.optimize(objective, n_trials=20)
-    best_params = study.best_params
-
-    model = LGBMRegressor(**best_params)
+    model = LGBMRegressor()
     model.fit(X_train_scaled, y_train)
     joblib.dump((model, scaler), "bnb_model.pkl")
-    print("Optimized model trained and saved.")
+    print("Model trained and saved.")
 
 if __name__ == "__main__":
+    load_data()
+    load_model()
     print(f"[{datetime.now()}] Bot started.")
     while True:
         try:
             execute_bot()
-            time.sleep(240)  # Run every 4 minutes to predict before the next epoch
+            time.sleep(240)
         except KeyboardInterrupt:
             print("Bot stopped by user.")
             break
