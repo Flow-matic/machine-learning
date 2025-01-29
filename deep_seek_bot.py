@@ -43,6 +43,33 @@ def get_market_data():
         print(f"Error fetching market data: {e}")
         return None
 
+def calculate_technical_indicators():
+    if len(price_history) < 21:
+        return None
+
+    df = pd.DataFrame({"price": price_history, "volume": volume_history})
+    df["returns"] = df["price"].pct_change()
+    df["ma_7"] = df["price"].rolling(window=7).mean()
+    df["ma_21"] = df["price"].rolling(window=21).mean()
+    df["rsi"] = calculate_rsi(df["price"])
+    df["macd"], df["signal_line"] = calculate_macd(df["price"])
+    df.dropna(inplace=True)
+    return df.iloc[-1].to_dict()
+
+def calculate_rsi(prices, period=14):
+    delta = prices.diff()
+    gain = delta.where(delta > 0, 0).rolling(window=period).mean()
+    loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+    rs = gain / loss
+    return 100 - (100 / (1 + rs))
+
+def calculate_macd(prices, short_period=12, long_period=26, signal_period=9):
+    short_ema = prices.ewm(span=short_period, adjust=False).mean()
+    long_ema = prices.ewm(span=long_period, adjust=False).mean()
+    macd_line = short_ema - long_ema
+    signal_line = macd_line.ewm(span=signal_period, adjust=False).mean()
+    return macd_line, signal_line
+
 def execute_bot():
     global model, scaler
 
