@@ -4,11 +4,11 @@ import logging
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from lightgbm import LGBMRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
-import optuna
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Dropout
 import joblib
 import os
 
@@ -28,9 +28,11 @@ logging.basicConfig(filename="bot.log", level=logging.INFO, format="%(asctime)s 
 
 def load_model():
     global model, scaler
-    if os.path.exists("bnb_model.pkl"):
-        model, scaler = joblib.load("bnb_model.pkl")
-        print("Model loaded from file.")
+    if os.path.exists("bnb_model.h5") and os.path.exists("scaler.pkl"):
+        model = create_model()
+        model.load_weights("bnb_model.h5")
+        scaler = joblib.load("scaler.pkl")
+        print("Model and scaler loaded from file.")
     else:
         print("No saved model found. Training required.")
 
@@ -98,6 +100,17 @@ def calculate_macd(prices, short_period=12, long_period=26, signal_period=9):
     signal_line = macd_line.ewm(span=signal_period, adjust=False).mean()
     return macd_line, signal_line
 
+def create_model():
+    model = Sequential([
+        LSTM(50, return_sequences=True, input_shape=(1, 6)),
+        Dropout(0.2),
+        LSTM(50),
+        Dropout(0.2),
+        Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
 def execute_bot():
     global model, scaler
     
@@ -121,8 +134,8 @@ def execute_bot():
 
                 if model and scaler:
                     try:
-                        features_scaled = scaler.transform([list(features_row.values())])
-                        prediction = model.predict(features_scaled)[0]
+                        features_scaled = scaler.transform([list(features_row.values())]).reshape(1, 1, -1)
+                        prediction = model.predict(features_scaled)[0][0]
 
                         direction = "UP" if prediction > 0.5 else "DOWN"
                         confidence = abs(prediction - 0.5) * 2
@@ -140,8 +153,6 @@ def execute_bot():
                     except Exception as e:
                         print(f"Error during prediction: {e}")
                         logging.exception("Error during prediction")
-                else:
-                    print("Model or scaler not yet trained or loaded. Skipping prediction.")
 
 def train_model():
     global model, scaler
@@ -155,12 +166,13 @@ def train_model():
 
     scaler = StandardScaler()
     scaler.fit(X_train)
-    X_train_scaled = scaler.transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    X_train_scaled = scaler.transform(X_train).reshape(-1, 1, 6)
+    X_test_scaled = scaler.transform(X_test).reshape(-1, 1, 6)
 
-    model = LGBMRegressor()
-    model.fit(X_train_scaled, y_train)
-    joblib.dump((model, scaler), "bnb_model.pkl")
+    model = create_model()
+    model.fit(X_train_scaled, y_train, epochs=10, batch_size=8, verbose=1)
+    model.save_weights("bnb_model.h5")
+    joblib.dump(scaler, "scaler.pkl")
     print("Model trained and saved.")
 
 if __name__ == "__main__":
